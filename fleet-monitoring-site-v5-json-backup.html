@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>نظام متابعة سيارات الشركة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #020617, #0f172a);
+      border-bottom: 1px solid #1f2937;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(16px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.25rem 1.5rem;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .app-subtitle {
+      margin: 0.35rem 0 0;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .layout {
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.8fr);
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent 55%), #020617;
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.7);
+      padding: 1.25rem 1.4rem 1.4rem;
+    }
+
+    .card-header {
+      margin-bottom: 1rem;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .card-header .muted {
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+
+    .muted {
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.9rem 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+    }
+
+    .form-group-full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      border-radius: 0.6rem;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 0.45rem 0.6rem;
+      font: inherit;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #6b7280;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+    }
+
+    input[type="number"] {
+      direction: ltr;
+      text-align: right;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 0.45rem 0.95rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #111827;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(15,23,42,0.7);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      border-color: transparent;
+      color: #020617;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    }
+
+    .btn-small {
+      padding: 0.28rem 0.7rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-danger {
+      border-color: #b91c1c;
+    }
+
+    .btn-danger:hover {
+      background: #7f1d1d;
+      border-color: #f87171;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card {
+      border-radius: 0.85rem;
+      border: 1px solid #1f2937;
+      padding: 0.6rem 0.8rem;
+      background: radial-gradient(circle at top right, rgba(59,130,246,0.16), transparent 55%);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .stat-value {
+      margin-top: 0.3rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 0.9rem;
+    }
+
+    .filter-group {
+      min-width: min(220px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .filter-group input {
+      min-width: 200px;
+    }
+
+    .report-actions {
+      margin-bottom: 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .card-header-actions {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+    }
+
+    .modal {
+      background: #020617;
+      border-radius: 1rem;
+      border: 1px solid #1f2937;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
+      padding: 1.25rem 1.5rem 1.5rem;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.75);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      font-size: 0.85rem;
+    }
+
+    .modal-footer {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .weekly-table-wrapper {
+      margin-top: 0.75rem;
+      border-radius: 0.75rem;
+      border: 1px solid #1f2937;
+      overflow: auto;
+    }
+
+    .weekly-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+      font-size: 0.8rem;
+    }
+
+    .weekly-table th,
+    .weekly-table td {
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid #111827;
+      text-align: right;
+    }
+
+    .weekly-table thead {
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .weekly-table input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .table-wrapper {
+      border-radius: 0.9rem;
+      border: 1px solid #1f2937;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      font-size: 0.82rem;
+    }
+
+    thead {
+      background: #020617;
+    }
+
+    th, td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid #111827;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 600;
+      color: #9ca3af;
+      position: sticky;
+      top: 0;
+      background: #020617;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15,23,42,0.7);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15,23,42,0.4);
+    }
+
+    .row-overdue {
+      box-shadow: inset 3px 0 0 #ef4444;
+    }
+
+    .row-near {
+      box-shadow: inset 3px 0 0 #eab308;
+    }
+
+    .status-badge {
+      border-radius: 999px;
+      padding: 0.12rem 0.55rem;
+      font-size: 0.74rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      border: 1px solid transparent;
+    }
+
+    .status-ok {
+      background: rgba(22,163,74,0.2);
+      border-color: rgba(22,163,74,0.6);
+      color: #bbf7d0;
+    }
+
+    .status-near {
+      background: rgba(234,179,8,0.15);
+      border-color: rgba(234,179,8,0.6);
+      color: #facc15;
+    }
+
+    .status-overdue {
+      background: rgba(248,113,113,0.18);
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+    }
+
+    .status-unknown {
+      background: rgba(148,163,184,0.14);
+      border-color: rgba(148,163,184,0.6);
+      color: #e5e7eb;
+    }
+
+    .small-date {
+      margin-top: 0.1rem;
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 0.12rem 0.55rem;
+      font-size: 0.74rem;
+      border: 1px solid #1f2937;
+    }
+
+    .tag-good {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.6);
+    }
+
+    .tag-check {
+      background: rgba(234,179,8,0.15);
+      border-color: rgba(234,179,8,0.6);
+    }
+
+    .tag-replace {
+      background: rgba(248,113,113,0.18);
+      border-color: rgba(248,113,113,0.7);
+    }
+
+    .tag-unknown {
+      background: rgba(148,163,184,0.14);
+      border-color: rgba(148,163,184,0.6);
+    }
+
+    .empty-row {
+      text-align: center;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        <h1 class="app-title">نظام متابعة سيارات الشركة</h1>
+        <p class="app-subtitle">
+          لوحة تحكم لمراقبة السيارات، عداد الكيلومترات، الصيانة، التأمين، الرخصة، وحالة الكاوتش.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="layout">
+      <!-- نموذج إدخال بيانات السيارة -->
+      <div class="card">
+        <div class="card-header">
+          <h2 id="form-title">إضافة سيارة جديدة</h2>
+          <p class="muted">سجّل بيانات السيارة، الكيلومترات، مواعيد الصيانة وحالة الإطارات.</p>
+        </div>
+        <form id="vehicle-form">
+          <input type="hidden" id="vehicleIndex" name="vehicleIndex" />
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="plateNumber">رقم اللوحة *</label>
+              <input type="text" id="plateNumber" name="plateNumber" required />
+            </div>
+            <div class="form-group">
+              <label for="carType">نوع / موديل السيارة *</label>
+              <input type="text" id="carType" name="carType" required />
+            </div>
+            <div class="form-group">
+              <label for="driverName">السائق / صاحب السيارة *</label>
+              <input type="text" id="driverName" name="driverName" required />
+            </div>
+            <div class="form-group">
+              <label for="department">الإدارة / القسم</label>
+              <input type="text" id="department" name="department" />
+            </div>
+            <div class="form-group">
+              <label for="odometer">العداد الحالي (كم) *</label>
+              <input type="number" id="odometer" name="odometer" min="0" step="1" required />
+            </div>
+            <div class="form-group">
+              <label for="maintenanceOdometer">عداد الصيانة القادمة (كم)</label>
+              <input type="number" id="maintenanceOdometer" name="maintenanceOdometer" min="0" step="1" />
+            </div>
+            <div class="form-group">
+              <label for="lastMaintenanceDate">تاريخ آخر صيانة</label>
+              <input type="date" id="lastMaintenanceDate" name="lastMaintenanceDate" />
+            </div>
+            <div class="form-group">
+              <label for="nextMaintenanceDate">تاريخ الصيانة القادمة</label>
+              <input type="date" id="nextMaintenanceDate" name="nextMaintenanceDate" />
+            </div>
+            <div class="form-group">
+              <label for="tiresStatus">حالة الكاوتش</label>
+              <select id="tiresStatus" name="tiresStatus">
+                <option value="">اختر</option>
+                <option value="good">جيدة</option>
+                <option value="check">تحتاج فحص</option>
+                <option value="replace">تحتاج تغيير</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="insuranceExpiry">انتهاء التأمين</label>
+              <input type="date" id="insuranceExpiry" name="insuranceExpiry" />
+            </div>
+            <div class="form-group">
+              <label for="licenseExpiry">انتهاء الرخصة</label>
+              <input type="date" id="licenseExpiry" name="licenseExpiry" />
+            </div>
+            <div class="form-group">
+              <label for="status">حالة السيارة</label>
+              <select id="status" name="status">
+                <option value="active" selected>نشطة</option>
+                <option value="inactive">خارج الخدمة</option>
+              </select>
+            </div>
+            <div class="form-group form-group-full">
+              <label for="notes">ملاحظات</label>
+              <textarea id="notes" name="notes" rows="2"
+                placeholder="أي ملاحظات إضافية (حالة الفرامل، أعطال معروفة، تجهيزات خاصة...)"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary" id="submit-btn">حفظ السيارة</button>
+            <button type="button" class="btn" id="resetBtn">تفريغ الحقول</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- لوحة المتابعة وقائمة السيارات -->
+      <div class="card">
+        <div class="card-header">
+          <h2>قائمة السيارات ومتابعة الصيانة</h2>
+          <p class="muted">استعرض حالة السيارات، الصيانة، التأمين والرخصة، مع فلترة سريعة.</p>
+          <div class="card-header-actions">
+            <button type="button" class="btn btn-small" onclick="openWeeklyModal()">تسجيل قراءة عداد الأحد</button>
+          </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">إجمالي السيارات</div>
+            <div class="stat-value" id="total-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">سيارات متأخرة عن الصيانة</div>
+            <div class="stat-value" id="overdue-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">سيارات قرب موعد صيانتها</div>
+            <div class="stat-value" id="near-count">0</div>
+          </div>
+        </div>
+
+        <!-- البحث والفلاتر -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="searchInput">بحث</label>
+            <input id="searchInput" type="text"
+              placeholder="بحث برقم اللوحة، السائق، نوع السيارة أو الإدارة..." />
+          </div>
+          <div class="filter-group">
+            <label for="statusFilter">حالة الصيانة</label>
+            <select id="statusFilter">
+              <option value="all">الكل</option>
+              <option value="overdue">متأخرة</option>
+              <option value="near">قريبة</option>
+              <option value="ok">سليمة</option>
+              <option value="unknown">غير محددة</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- تقارير PDF -->
+        <div class="report-actions">
+          <button type="button" class="btn btn-small" onclick="printAllVehicles()">تقرير كل السيارات (PDF)</button>
+          <button type="button" class="btn btn-small" onclick="exportJson()">تصدير كل البيانات (JSON)</button>
+          <button type="button" class="btn btn-small" onclick="document.getElementById('jsonFileInput').click()">استيراد بيانات (JSON)</button>
+          <input type="file" id="jsonFileInput" accept="application/json" style="display:none" onchange="importJsonFile(event)">
+        </div>
+
+        <!-- جدول السيارات -->
+        <div class="table-wrapper">
+          <table id="vehicles-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>رقم اللوحة</th>
+                <th>نوع السيارة</th>
+                <th>السائق / صاحب السيارة</th>
+                <th>العداد الحالي (كم)</th>
+                <th>عداد الصيانة القادمة (كم)</th>
+                <th>حالة الصيانة</th>
+                <th>حالة الكاوتش</th>
+                <th>التأمين</th>
+                <th>الرخصة</th>
+                <th>حالة السيارة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- يُملأ ديناميكياً -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1.5rem;">
+      <div class="card-header">
+        <h2>تقارير أسبوعية (قراءات يوم الأحد)</h2>
+        <p class="muted">عرض قراءات عداد يوم الأحد لكل السيارات مع إمكانية التصفية وطباعة تقرير.</p>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="weeklyPlateFilter">السيارة</label>
+          <select id="weeklyPlateFilter">
+            <option value="all">كل السيارات</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="weeklyFromDate">من تاريخ</label>
+          <input type="date" id="weeklyFromDate" />
+        </div>
+        <div class="filter-group">
+          <label for="weeklyToDate">إلى تاريخ</label>
+          <input type="date" id="weeklyToDate" />
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button type="button" class="btn btn-small" onclick="printWeeklyReport()">تقرير PDF للقراءات</button>
+        </div>
+        <div class="filter-group">
+          <label>&nbsp;</label>
+          <button type="button" class="btn btn-small btn-danger" onclick="clearWeeklyLogsWithPassword()">مسح كل تقارير الأحد</button>
+        </div>
+      </div>
+      <div class="weekly-table-wrapper">
+        <table class="weekly-table" id="weekly-report-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>التاريخ</th>
+              <th>رقم اللوحة</th>
+              <th>نوع السيارة</th>
+              <th>السائق</th>
+              <th>قراءة العداد (كم)</th>
+              <th>المسافة من آخر قراءة (كم)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="7" class="empty-row">لا توجد قراءات محفوظة حتى الآن.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="weekly-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">تسجيل قراءة عداد يوم الأحد</h3>
+        <button type="button" class="modal-close" onclick="closeWeeklyModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid" style="margin-bottom:0.5rem;">
+          <div class="form-group">
+            <label for="weeklyDate">تاريخ القراءة</label>
+            <input type="date" id="weeklyDate" />
+          </div>
+          <div class="form-group">
+            <p class="muted">
+              أدخل قراءة العداد لكل سيارة مستخدمة في هذا الأسبوع. سيتم تحديث العداد في النظام وتسجيل الحركة الأسبوعية.
+            </p>
+          </div>
+        </div>
+        <div class="weekly-table-wrapper">
+          <table class="weekly-table" id="weekly-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>رقم اللوحة</th>
+                <th>نوع السيارة</th>
+                <th>السائق</th>
+                <th>العداد الحالي (كم)</th>
+                <th>قراءة اليوم (كم)</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeWeeklyModal()">إلغاء</button>
+        <button type="button" class="btn primary" onclick="saveWeeklyLogs()">حفظ القراءات</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let vehicles = [];
+    const STORAGE_KEY = 'company_fleet_vehicles';
+
+    let weeklyLogs = [];
+    const WEEKLY_STORAGE_KEY = 'company_fleet_weekly_logs';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            vehicles = parsed;
+          }
+        } catch (e) {
+          vehicles = [];
+        }
+      }
+
+      const logsStored = localStorage.getItem(WEEKLY_STORAGE_KEY);
+      if (logsStored) {
+        try {
+          const parsedLogs = JSON.parse(logsStored);
+          if (Array.isArray(parsedLogs)) {
+            weeklyLogs = parsedLogs;
+          }
+        } catch (e) {
+          weeklyLogs = [];
+        }
+      }
+
+      const form = document.getElementById('vehicle-form');
+      if (form) {
+        form.addEventListener('submit', handleSubmit);
+      }
+
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          resetForm();
+        });
+      }
+
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', renderTable);
+      }
+
+      const statusFilter = document.getElementById('statusFilter');
+      if (statusFilter) {
+        statusFilter.addEventListener('change', renderTable);
+      }
+
+      const weeklyPlateFilter = document.getElementById('weeklyPlateFilter');
+      if (weeklyPlateFilter) {
+        weeklyPlateFilter.addEventListener('change', renderWeeklyReport);
+      }
+
+      const weeklyFromDate = document.getElementById('weeklyFromDate');
+      const weeklyToDate = document.getElementById('weeklyToDate');
+      if (weeklyFromDate) {
+        weeklyFromDate.addEventListener('change', renderWeeklyReport);
+      }
+      if (weeklyToDate) {
+        weeklyToDate.addEventListener('change', renderWeeklyReport);
+      }
+
+      renderTable();
+      renderWeeklyReport();
+    });
+
+    function saveVehicles() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+      } catch (e) {
+        console.error('Cannot save vehicles to localStorage', e);
+      }
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+
+      const vehicle = {
+        plate: form.plateNumber.value.trim(),
+        type: form.carType.value.trim(),
+        driver: form.driverName.value.trim(),
+        department: form.department.value.trim(),
+        odometer: Number(form.odometer.value) || 0,
+        maintenanceOdometer: form.maintenanceOdometer.value ? Number(form.maintenanceOdometer.value) : 0,
+        lastMaintenanceDate: form.lastMaintenanceDate.value,
+        nextMaintenanceDate: form.nextMaintenanceDate.value,
+        tiresStatus: form.tiresStatus.value,
+        insuranceExpiry: form.insuranceExpiry.value,
+        licenseExpiry: form.licenseExpiry.value,
+        status: form.status.value || 'active',
+        notes: form.notes.value.trim()
+      };
+
+      if (!vehicle.plate || !vehicle.type || !vehicle.driver) {
+        alert('من فضلك أكمل الحقول الأساسية: رقم اللوحة، نوع السيارة، السائق.');
+        return;
+      }
+
+      const indexValue = form.vehicleIndex.value;
+      if (indexValue === '') {
+        vehicles.push(vehicle);
+      } else {
+        const idx = Number(indexValue);
+        if (!Number.isNaN(idx) && vehicles[idx]) {
+          vehicles[idx] = vehicle;
+        }
+      }
+
+      saveVehicles();
+      resetForm();
+      renderTable();
+    }
+
+    function resetForm() {
+      const form = document.getElementById('vehicle-form');
+      if (!form) return;
+      form.reset();
+      form.vehicleIndex.value = '';
+      const title = document.getElementById('form-title');
+      const submitBtn = document.getElementById('submit-btn');
+      if (title) title.textContent = 'إضافة سيارة جديدة';
+      if (submitBtn) submitBtn.textContent = 'حفظ السيارة';
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#vehicles-table tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const searchInput = document.getElementById('searchInput');
+      const statusFilter = document.getElementById('statusFilter');
+      const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+      const filterValue = statusFilter ? statusFilter.value : 'all';
+
+      let visibleCount = 0;
+
+      vehicles.forEach(function (v, index) {
+        const combined = (v.plate + ' ' + v.type + ' ' + v.driver + ' ' + (v.department || '')).toLowerCase();
+        if (searchText && combined.indexOf(searchText) === -1) {
+          return;
+        }
+
+        const maintenanceInfo = getMaintenanceStatus(v);
+        if (filterValue !== 'all' && filterValue !== maintenanceInfo.status) {
+          return;
+        }
+
+        const tr = document.createElement('tr');
+        if (maintenanceInfo.status === 'overdue') {
+          tr.classList.add('row-overdue');
+        } else if (maintenanceInfo.status === 'near') {
+          tr.classList.add('row-near');
+        }
+
+        const insuranceHtml = formatExpiry(v.insuranceExpiry);
+        const licenseHtml = formatExpiry(v.licenseExpiry);
+        const tiresCls = v.tiresStatus ? 'tag-' + v.tiresStatus : 'tag-unknown';
+
+        tr.innerHTML =
+          '<td>' + (index + 1) + '</td>' +
+          '<td>' + escapeHtml(v.plate) + '</td>' +
+          '<td>' + escapeHtml(v.type) + '</td>' +
+          '<td>' + escapeHtml(v.driver) + '</td>' +
+          '<td>' + (v.odometer || 0) + '</td>' +
+          '<td>' + (v.maintenanceOdometer || '-') + '</td>' +
+          '<td><span class="status-badge status-' + maintenanceInfo.status + '">' + maintenanceInfo.label + '</span></td>' +
+          '<td><span class="tag ' + tiresCls + '">' + tiresLabel(v.tiresStatus) + '</span></td>' +
+          '<td>' + insuranceHtml + '</td>' +
+          '<td>' + licenseHtml + '</td>' +
+          '<td>' + (v.status === 'inactive' ? 'خارج الخدمة' : 'نشطة') + '</td>' +
+          '<td>' +
+          '<button type="button" class="btn btn-small" onclick="printVehicleReport(' + index + ')">PDF</button>' +
+          '<button type="button" class="btn btn-small" onclick="editVehicle(' + index + ')">تعديل</button>' +
+          '<button type="button" class="btn btn-small btn-danger" onclick="deleteVehicle(' + index + ')">حذف</button>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+        visibleCount++;
+      });
+
+      if (visibleCount === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td class="empty-row" colspan="12">لا توجد سيارات مطابقة لخيارات البحث الحالية.</td>';
+        tbody.appendChild(tr);
+      }
+
+      renderSummary();
+    }
+
+    function renderSummary() {
+      const totalEl = document.getElementById('total-count');
+      const overdueEl = document.getElementById('overdue-count');
+      const nearEl = document.getElementById('near-count');
+      if (!totalEl || !overdueEl || !nearEl) return;
+
+      let overdue = 0;
+      let near = 0;
+
+      vehicles.forEach(function (v) {
+        const status = getMaintenanceStatus(v).status;
+        if (status === 'overdue') overdue++;
+        else if (status === 'near') near++;
+      });
+
+      totalEl.textContent = vehicles.length;
+      overdueEl.textContent = overdue;
+      nearEl.textContent = near;
+    }
+
+    function getMaintenanceStatus(v) {
+      let status = 'unknown';
+      let label = 'غير محدد';
+
+      const hasKm = typeof v.maintenanceOdometer === 'number' && v.maintenanceOdometer > 0;
+      const hasDate = !!v.nextMaintenanceDate;
+
+      if (!hasKm && !hasDate) {
+        return { status: status, label: label };
+      }
+
+      status = 'ok';
+      label = 'سليم';
+
+      let kmDiff = null;
+      if (hasKm) {
+        kmDiff = v.maintenanceOdometer - (v.odometer || 0);
+      }
+
+      let dateDiff = null;
+      if (hasDate) {
+        const next = new Date(v.nextMaintenanceDate);
+        if (!isNaN(next.getTime())) {
+          const today = new Date();
+          dateDiff = Math.ceil((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        }
+      }
+
+      if ((kmDiff !== null && kmDiff <= 0) || (dateDiff !== null && dateDiff <= 0)) {
+        status = 'overdue';
+        label = 'متأخر';
+      } else if ((kmDiff !== null && kmDiff <= 1000) || (dateDiff !== null && dateDiff <= 30)) {
+        status = 'near';
+        label = 'قريبة';
+      }
+
+      return { status: status, label: label };
+    }
+
+    function getExpiryStatus(dateStr) {
+      if (!dateStr) {
+        return { status: 'unknown', label: 'غير محدد' };
+      }
+      const exp = new Date(dateStr);
+      if (isNaN(exp.getTime())) {
+        return { status: 'unknown', label: dateStr };
+      }
+      const today = new Date();
+      const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) {
+        return { status: 'overdue', label: 'منتهي' };
+      }
+      if (diffDays <= 30) {
+        return { status: 'near', label: 'قرب الانتهاء' };
+      }
+      return { status: 'ok', label: 'ساري' };
+    }
+
+    function formatExpiry(dateStr) {
+      const info = getExpiryStatus(dateStr);
+      if (!dateStr) {
+        return '<span class="status-badge status-' + info.status + '">' + info.label + '</span>';
+      }
+      return (
+        '<div>' +
+        '<span class="status-badge status-' + info.status + '">' + info.label + '</span>' +
+        '<div class="small-date">' + dateStr + '</div>' +
+        '</div>'
+      );
+    }
+
+    function tiresLabel(value) {
+      if (value === 'good') return 'جيدة';
+      if (value === 'check') return 'تحتاج فحص';
+      if (value === 'replace') return 'تحتاج تغيير';
+      return 'غير محدد';
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/[&<>"']/g, function (m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m] || m;
+      });
+    }
+
+    function editVehicle(index) {
+      const v = vehicles[index];
+      const form = document.getElementById('vehicle-form');
+      if (!v || !form) return;
+
+      form.vehicleIndex.value = String(index);
+      form.plateNumber.value = v.plate || '';
+      form.carType.value = v.type || '';
+      form.driverName.value = v.driver || '';
+      form.department.value = v.department || '';
+      form.odometer.value = v.odometer || 0;
+      form.maintenanceOdometer.value = v.maintenanceOdometer || '';
+      form.lastMaintenanceDate.value = v.lastMaintenanceDate || '';
+      form.nextMaintenanceDate.value = v.nextMaintenanceDate || '';
+      form.tiresStatus.value = v.tiresStatus || '';
+      form.insuranceExpiry.value = v.insuranceExpiry || '';
+      form.licenseExpiry.value = v.licenseExpiry || '';
+      form.status.value = v.status || 'active';
+      form.notes.value = v.notes || '';
+
+      const title = document.getElementById('form-title');
+      const submitBtn = document.getElementById('submit-btn');
+      if (title) title.textContent = 'تعديل بيانات سيارة';
+      if (submitBtn) submitBtn.textContent = 'حفظ التعديلات';
+
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getDefaultSunday() {
+      const today = new Date();
+      const day = today.getDay();
+      const diffToSunday = day === 0 ? 0 : day;
+      const sunday = new Date(today);
+      sunday.setDate(today.getDate() - diffToSunday);
+      return sunday.toISOString().slice(0, 10);
+    }
+
+    function openWeeklyModal() {
+      const modal = document.getElementById('weekly-modal');
+      const tbody = document.querySelector('#weekly-table tbody');
+      const dateInput = document.getElementById('weeklyDate');
+      if (!modal || !tbody || !dateInput) return;
+
+      tbody.innerHTML = '';
+
+      const activeVehicles = vehicles.filter(function (v) {
+        return v.status !== 'inactive';
+      });
+
+      activeVehicles.forEach(function (v, idx) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(v.plate || '') + '</td>' +
+          '<td>' + escapeHtml(v.type || '') + '</td>' +
+          '<td>' + escapeHtml(v.driver || '') + '</td>' +
+          '<td>' + (v.odometer || 0) + '</td>' +
+          '<td><input type="number" min="0" step="1" data-index="' + idx + '" /></td>';
+        tbody.appendChild(tr);
+      });
+
+      dateInput.value = getDefaultSunday();
+      modal.style.display = 'flex';
+    }
+
+    function closeWeeklyModal() {
+      const modal = document.getElementById('weekly-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function persistWeeklyLogs() {
+      try {
+        localStorage.setItem(WEEKLY_STORAGE_KEY, JSON.stringify(weeklyLogs));
+      } catch (e) {
+        console.error('Cannot save weekly logs', e);
+      }
+    }
+
+    function findLastOdometerForPlate(plate) {
+      for (let i = weeklyLogs.length - 1; i >= 0; i--) {
+        if (weeklyLogs[i].plate === plate && typeof weeklyLogs[i].odometer === 'number') {
+          return weeklyLogs[i].odometer;
+        }
+      }
+      return null;
+    }
+
+    function saveWeeklyLogs() {
+      const dateInput = document.getElementById('weeklyDate');
+      const tbody = document.querySelector('#weekly-table tbody');
+      if (!dateInput || !tbody) return;
+
+      const dateStr = dateInput.value;
+      if (!dateStr) {
+        alert('من فضلك اختر تاريخ القراءة.');
+        return;
+      }
+
+      const inputs = tbody.querySelectorAll('input[type="number"]');
+      const activeVehicles = vehicles.filter(function (v) {
+        return v.status !== 'inactive';
+      });
+
+      let count = 0;
+
+      inputs.forEach(function (input) {
+        const idx = Number(input.getAttribute('data-index'));
+        if (Number.isNaN(idx) || !activeVehicles[idx]) return;
+        const value = input.value;
+        if (!value) return;
+
+        const newOdo = Number(value);
+        if (Number.isNaN(newOdo) || newOdo < 0) return;
+
+        const v = activeVehicles[idx];
+        const plate = v.plate || '';
+        const lastOdo = findLastOdometerForPlate(plate);
+        let delta = null;
+        if (lastOdo !== null && newOdo >= lastOdo) {
+          delta = newOdo - lastOdo;
+        }
+
+        weeklyLogs.push({
+          plate: plate,
+          type: v.type || '',
+          driver: v.driver || '',
+          date: dateStr,
+          odometer: newOdo,
+          deltaKm: delta
+        });
+
+        const originalIndex = vehicles.indexOf(v);
+        if (originalIndex !== -1) {
+          vehicles[originalIndex].odometer = newOdo;
+        }
+
+        count++;
+      });
+
+      if (!count) {
+        alert('لم يتم إدخال أي قراءات.');
+        return;
+      }
+
+      saveVehicles();
+      persistWeeklyLogs();
+      renderTable();
+      closeWeeklyModal();
+      alert('تم حفظ ' + count + ' قراءة عداد بنجاح ليوم ' + dateStr + '.');
+    }
+
+    function getFilteredWeeklyLogs() {
+      const plateSelect = document.getElementById('weeklyPlateFilter');
+      const fromInput = document.getElementById('weeklyFromDate');
+      const toInput = document.getElementById('weeklyToDate');
+      if (!plateSelect || !fromInput || !toInput) return [];
+
+      const selectedPlate = plateSelect.value || 'all';
+      const fromDate = fromInput.value;
+      const toDate = toInput.value;
+
+      const logs = weeklyLogs.slice().sort(function (a, b) {
+        if (!a || !b) return 0;
+        if (a.date === b.date) {
+          if (a.plate === b.plate) return 0;
+          return a.plate > b.plate ? 1 : -1;
+        }
+        return a.date < b.date ? 1 : -1;
+      });
+
+      const filtered = [];
+      logs.forEach(function (log) {
+        if (!log || !log.date) return;
+        if (selectedPlate !== 'all' && log.plate !== selectedPlate) return;
+        if (fromDate && log.date < fromDate) return;
+        if (toDate && log.date > toDate) return;
+        filtered.push(log);
+      });
+
+      return filtered;
+    }
+
+    function renderWeeklyReport() {
+      const tbody = document.querySelector('#weekly-report-table tbody');
+      const plateSelect = document.getElementById('weeklyPlateFilter');
+      if (!tbody || !plateSelect) return;
+
+      const previousValue = plateSelect.value || 'all';
+
+      // إعادة بناء قائمة السيارات المتاحة حسب السجلات
+      const uniqueMap = new Map();
+      weeklyLogs.forEach(function (log) {
+        if (!log || !log.plate) return;
+        if (!uniqueMap.has(log.plate)) {
+          uniqueMap.set(log.plate, { type: log.type || '', driver: log.driver || '' });
+        }
+      });
+
+      plateSelect.innerHTML = '<option value="all">كل السيارات</option>';
+      uniqueMap.forEach(function (info, plate) {
+        const opt = document.createElement('option');
+        opt.value = plate;
+        let label = plate;
+        if (info.type) label += ' - ' + info.type;
+        if (info.driver) label += ' - ' + info.driver;
+        opt.textContent = label;
+        plateSelect.appendChild(opt);
+      });
+
+      if (previousValue && (previousValue === 'all' || uniqueMap.has(previousValue))) {
+        plateSelect.value = previousValue;
+      } else {
+        plateSelect.value = 'all';
+      }
+
+      const filtered = getFilteredWeeklyLogs();
+
+      tbody.innerHTML = '';
+      if (!filtered.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="7" class="empty-row">لا توجد قراءات مطابقة لخيارات الفلتر الحالية.</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach(function (log, idx) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + (idx + 1) + '</td>' +
+          '<td>' + log.date + '</td>' +
+          '<td>' + escapeHtml(log.plate || '') + '</td>' +
+          '<td>' + escapeHtml(log.type || '') + '</td>' +
+          '<td>' + escapeHtml(log.driver || '') + '</td>' +
+          '<td>' + (typeof log.odometer === 'number' ? log.odometer : '-') + '</td>' +
+          '<td>' + (typeof log.deltaKm === 'number' ? log.deltaKm : '-') + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function printWeeklyReport() {
+      const logs = getFilteredWeeklyLogs();
+      if (!logs.length) {
+        alert('لا توجد قراءات لطباعة تقرير.');
+        return;
+      }
+
+      const now = new Date().toLocaleString('ar-EG');
+
+      let rows = '';
+      logs.forEach(function (log, idx) {
+        rows += '<tr>' +
+          '<td>' + (idx + 1) + '</td>' +
+          '<td>' + log.date + '</td>' +
+          '<td>' + escapeHtml(log.plate || '') + '</td>' +
+          '<td>' + escapeHtml(log.type || '') + '</td>' +
+          '<td>' + escapeHtml(log.driver || '') + '</td>' +
+          '<td>' + (typeof log.odometer === 'number' ? log.odometer : '-') + '</td>' +
+          '<td>' + (typeof log.deltaKm === 'number' ? log.deltaKm : '-') + '</td>' +
+        '</tr>';
+      });
+
+      const win = window.open('', '_blank');
+      if (!win) return;
+
+      win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تقرير قراءات يوم الأحد</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif; margin: 20px; direction: rtl; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; font-size: 12px; }
+    th { background: #f3f4f6; }
+    .meta { font-size: 12px; color: #666; margin-top: 8px; }
+  </style>
+</head>
+<body onload="window.print()">
+  <h1>تقرير قراءات عداد يوم الأحد</h1>
+  <div class="meta">تاريخ إنشاء التقرير: ${now}</div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>التاريخ</th>
+        <th>رقم اللوحة</th>
+        <th>نوع السيارة</th>
+        <th>السائق</th>
+        <th>قراءة العداد (كم)</th>
+        <th>المسافة من آخر قراءة (كم)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+</body>
+</html>`);
+      win.document.close();
+    }
+
+    function clearWeeklyLogsWithPassword() {
+      const pwd = prompt('من فضلك أدخل الرقم السري لمسح جميع تقارير يوم الأحد:');
+      if (pwd === null) return;
+      if (pwd !== '0000') {
+        alert('الرقم السري غير صحيح.');
+        return;
+      }
+      if (!confirm('تحذير: سيتم مسح جميع تقارير قراءات يوم الأحد نهائيًا ولا يمكن استرجاعها. هل أنت متأكد؟')) {
+        return;
+      }
+      weeklyLogs = [];
+      persistWeeklyLogs();
+      renderWeeklyReport();
+      alert('تم مسح جميع تقارير قراءات يوم الأحد بنجاح.');
+    }
+
+
+    function deleteVehicle(index) {
+      if (!confirm('هل أنت متأكد من حذف هذه السيارة من النظام؟')) return;
+      vehicles.splice(index, 1);
+      saveVehicles();
+      renderTable();
+    }
+
+    function printVehicleReport(index) {
+      const v = vehicles[index];
+      if (!v) return;
+
+      const win = window.open('', '_blank');
+      if (!win) return;
+
+      const now = new Date().toLocaleString('ar-EG');
+
+      const maintenanceInfo = getMaintenanceStatus(v);
+      const insuranceInfo = getExpiryStatus(v.insuranceExpiry);
+      const licenseInfo = getExpiryStatus(v.licenseExpiry);
+      const tires = tiresLabel(v.tiresStatus);
+
+      win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تقرير سيارة - ${escapeHtml(v.plate || '')}</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif; margin: 20px; direction: rtl; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    h2 { font-size: 16px; margin-top: 0; color: #555; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; font-size: 13px; }
+    th { background: #f3f4f6; }
+    .meta { font-size: 12px; color: #666; margin-top: 8px; }
+  </style>
+</head>
+<body onload="window.print()">
+  <h1>تقرير سيارة</h1>
+  <h2>رقم اللوحة: ${escapeHtml(v.plate || '')}</h2>
+  <div class="meta">تاريخ التقرير: ${now}</div>
+  <table>
+    <tbody>
+      <tr><th>نوع / موديل السيارة</th><td>${escapeHtml(v.type || '')}</td></tr>
+      <tr><th>السائق / صاحب السيارة</th><td>${escapeHtml(v.driver || '')}</td></tr>
+      <tr><th>الإدارة / القسم</th><td>${escapeHtml(v.department || '')}</td></tr>
+      <tr><th>العداد الحالي (كم)</th><td>${v.odometer || 0}</td></tr>
+      <tr><th>عداد الصيانة القادمة (كم)</th><td>${v.maintenanceOdometer || '-'}</td></tr>
+      <tr><th>حالة الصيانة</th><td>${maintenanceInfo.label}</td></tr>
+      <tr><th>تاريخ آخر صيانة</th><td>${v.lastMaintenanceDate || '-'}</td></tr>
+      <tr><th>تاريخ الصيانة القادمة</th><td>${v.nextMaintenanceDate || '-'}</td></tr>
+      <tr><th>حالة الكاوتش</th><td>${tires}</td></tr>
+      <tr><th>انتهاء التأمين</th><td>${v.insuranceExpiry || '-'} (${insuranceInfo.label})</td></tr>
+      <tr><th>انتهاء الرخصة</th><td>${v.licenseExpiry || '-'} (${licenseInfo.label})</td></tr>
+      <tr><th>حالة السيارة</th><td>${v.status === 'inactive' ? 'خارج الخدمة' : 'نشطة'}</td></tr>
+      <tr><th>ملاحظات</th><td>${escapeHtml(v.notes || '')}</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>`);
+      win.document.close();
+    }
+
+    function printAllVehicles() {
+      if (!vehicles.length) {
+        alert('لا توجد سيارات لطباعة تقرير.');
+        return;
+      }
+
+      const now = new Date().toLocaleString('ar-EG');
+      let rows = '';
+
+      vehicles.forEach(function (v, index) {
+        const maintenanceInfo = getMaintenanceStatus(v);
+        const tires = tiresLabel(v.tiresStatus);
+        const insurance = v.insuranceExpiry || '-';
+        const license = v.licenseExpiry || '-';
+
+        rows += '<tr>' +
+          '<td>' + (index + 1) + '</td>' +
+          '<td>' + escapeHtml(v.plate || '') + '</td>' +
+          '<td>' + escapeHtml(v.type || '') + '</td>' +
+          '<td>' + escapeHtml(v.driver || '') + '</td>' +
+          '<td>' + (v.odometer || 0) + '</td>' +
+          '<td>' + (v.maintenanceOdometer || '-') + '</td>' +
+          '<td>' + maintenanceInfo.label + '</td>' +
+          '<td>' + tires + '</td>' +
+          '<td>' + insurance + '</td>' +
+          '<td>' + license + '</td>' +
+          '<td>' + (v.status === 'inactive' ? 'خارج الخدمة' : 'نشطة') + '</td>' +
+        '</tr>';
+      });
+
+      const win = window.open('', '_blank');
+      if (!win) return;
+
+      win.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تقرير كل السيارات</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif; margin: 20px; direction: rtl; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: right; font-size: 12px; }
+    th { background: #f3f4f6; }
+    .meta { font-size: 12px; color: #666; margin-top: 8px; }
+  </style>
+</head>
+<body onload="window.print()">
+  <h1>تقرير كل السيارات</h1>
+  <div class="meta">تاريخ التقرير: ${now}</div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>رقم اللوحة</th>
+        <th>نوع السيارة</th>
+        <th>السائق / صاحب السيارة</th>
+        <th>العداد الحالي (كم)</th>
+        <th>عداد الصيانة القادمة (كم)</th>
+        <th>حالة الصيانة</th>
+        <th>حالة الكاوتش</th>
+        <th>انتهاء التأمين</th>
+        <th>انتهاء الرخصة</th>
+        <th>حالة السيارة</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+</body>
+</html>`);
+      win.document.close();
+    }
+  
+    function exportJson() {
+      const data = {
+        vehicles: vehicles,
+        weeklyLogs: weeklyLogs
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+
+      a.href = url;
+      a.download = 'fleet-backup-' + today + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importJsonFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        try {
+          const json = JSON.parse(e.target.result);
+
+          if (Array.isArray(json)) {
+            vehicles = json;
+          } else if (json && typeof json === 'object') {
+            vehicles = Array.isArray(json.vehicles) ? json.vehicles : [];
+            weeklyLogs = Array.isArray(json.weeklyLogs) ? json.weeklyLogs : [];
+          } else {
+            throw new Error('Bad format');
+          }
+
+          saveVehicles();
+          persistWeeklyLogs();
+          renderTable();
+          renderWeeklyReport();
+
+          alert('تم استيراد البيانات بنجاح.');
+        } catch (err) {
+          console.error('Import error', err);
+          alert('فشل استيراد الملف. تأكد أن الملف بصيغة JSON صحيحة وبنفس هيكل البرنامج.');
+        } finally {
+          event.target.value = '';
+        }
+      };
+
+      reader.readAsText(file, 'utf-8');
+    }
+
+</script>
+</body>
+</html>
